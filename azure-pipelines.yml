@@ -6,16 +6,64 @@
 # https://aka.ms/yaml
 
 trigger:
-- master
+- none
 
-pool:
-  vmImage: ubuntu-latest
+variables:
+  IISWebsiteName: 'Mercedes-Benz'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+#resources:
+#  pipelines:
+#    - pipeline: 'Tedkata.TerraformDevEnv'
+#       project: 'Mercedes-Benz'
+#       source: 'Tedkata/TerraformDevEnv/azure-pipelines.yml'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+stages:
+  - stage: DeployWebsite
+    displayName: 'Deploy website'
+    pool: 
+      vmImage: windows-latest
+    
+    jobs:
+    - deployment: DeployWebsite
+      displayName: 'Deploy website'
+      environment: 'Windows 11 server'
+      strategy:
+        runOnce:
+            deploy:
+              steps:
+                  - checkout: none
+
+                  - download: 'Tedkata.TerraformDevEnv'
+                    name: 'DownloadBuildArtifacts'
+                    displayName: 'Download Build Artifacts'
+                    artifact: 'Mercedes-Benz'
+
+                  - task: IISWebAppManagementOnMachineGroup@0
+                    name: 'StopIIS'
+                    displayName: 'Stops IIS Website'
+                    inputs:
+                      IISDeploymentType: 'IISWebsite'
+                      ActionIISWebsite: 'StopWebsite'
+                      StartStopWebsiteName: '${{variables.IISWebSiteName}}'
+                    
+                  - task: IISWebAppDeploymentOnMachineGroup@0
+                    name: 'DeployIIS'
+                    displayName: 'Deploy IIS Website'
+                    inputs:
+                      WebSiteName: '${{variables.IISWebSiteName}}'
+                      Package: 'Tedkata/TerraformDevEnv/azure-pipelines.yml'
+                      TakeAppOfflineFlag: true
+                    
+                  - task: IISWebAppManagementOnMachineGroup@0
+                    name: 'StartIIS'
+                    displayName: 'Start IIS Website'
+                    inputs:
+                      IISDeploymentType: 'IISWebsite'
+                      ActionIISWebsite: 'StartWebsite'
+                      StartStopWebsiteName: '${{variables.IISWebSiteName}}'
+                        
+                    
+                        
+                    
+                    
+                  
