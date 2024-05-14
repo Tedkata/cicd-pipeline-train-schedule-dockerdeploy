@@ -22,21 +22,34 @@ steps:
       displayName: 'Nuget tool installer'
       
     - task: NuGetCommand@2
+      name: 'NuGetRestore'
+      displayName: 'Nuget restore packages'
       inputs:
         command: 'restore'
         restoreSolution: '$(solution)'
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
+      name: 'NuGetTest'
+      displayName: 'Nuget run tests'
       inputs:
         command: 'test'
         projects: '$(solution)'
         arguments: '--configuration $(buildConfiguration)'
     
     - task: DotNetCoreCLI@2
+      name: 'NuGetPublish'
+      displayName: 'Nuget publish'
       inputs:
         command: 'publish'
         publishWebProjects: false
         projects: '$(project)'
         arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'    
 
+    - task: PublishBuildArtifacts@1
+      name: 'PublishBuildArtifacts'
+      displayName: 'Publish build artifacts'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'Mercedes-Benz'
+        publishLocation: 'Container'
